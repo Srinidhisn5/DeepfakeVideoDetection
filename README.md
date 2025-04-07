@@ -61,3 +61,4 @@ deepfake-video-detection/
 │   └── js/
 └── model/
     └── <pretrained_model_files>
+For queries get in touch with https://www.linkedin.com/in/srinidhi-sn-876368210/
