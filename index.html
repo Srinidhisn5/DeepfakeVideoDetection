@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AI Deepfake Detector</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+  <!-- Animated Background -->
+  <div id="bg-animation"></div>
+
+  <!-- Splash Screen -->
+  <div class="splash-screen" id="splash">
+    <h1 class="glitch-in" id="intro-text">AI Deepfake Detector</h1>
+    <button class="neon-button" id="enter-btn">Unmask the Truth</button>
+  </div>
+
+  <!-- Dashboard Section -->
+  <div class="dashboard hidden" id="dashboard">
+    <div class="card upload pop-text">
+      <h2 class="typewriter">Upload Video</h2>
+      <form id="upload-form">
+        <input type="file" id="video-input" name="video" required />
+        <button type="submit">Analyze</button>
+      </form>
+    </div>
+
+    <div class="card loader" id="loader" style="display: none;">
+      <h2 class="typewriter">Initializing AI Core...</h2>
+      <div class="spinner"></div>
+    </div>
+
+    <div class="card result" id="result-section" style="display: none;">
+      <h2 class="typewriter">Analysis Result</h2>
+      <p class="glitch-text pop-text" id="result-text"></p>
+      <div class="bar-container">
+        <div class="bar-fill" id="confidence-bar"></div>
+      </div>
+      <p class="confidence" id="confidence-text"></p>
+    </div>
+  </div>
+
+  <!-- Cursor -->
+  <div class="cursor" id="cursor"></div>
+
+  <script>
+    // Custom Cursor & Color Trail
+    const cursor = document.getElementById("cursor");
+    document.addEventListener("mousemove", e => {
+      cursor.style.left = `${e.clientX}px`;
+      cursor.style.top = `${e.clientY}px`;
+      const hue = (Date.now() / 10) % 360;
+      cursor.style.background = `hsl(${hue}, 100%, 70%)`;
+    });
+
+    // Background Animation (Colorful Flow)
+    const bg = document.getElementById("bg-animation");
+    bg.style.position = 'fixed';
+    bg.style.top = 0;
+    bg.style.left = 0;
+    bg.style.width = '100%';
+    bg.style.height = '100%';
+    bg.style.zIndex = '-1';
+    bg.style.background = 'linear-gradient(270deg, #ff9a9e, #fad0c4, #fad0c4, #fbc2eb, #a18cd1)';
+    bg.style.backgroundSize = '1000% 1000%';
+    bg.style.animation = 'gradientFlow 20s ease infinite';
+
+    // Splash Transition
+    const enterBtn = document.getElementById("enter-btn");
+    const splash = document.getElementById("splash");
+    const dashboard = document.getElementById("dashboard");
+    enterBtn.addEventListener("click", () => {
+      splash.classList.add("fade-out");
+      setTimeout(() => {
+        splash.style.display = "none";
+        dashboard.classList.remove("hidden");
+      }, 1000);
+    });
+
+    // Upload & Predict Logic
+    const form = document.getElementById('upload-form');
+    const loader = document.getElementById('loader');
+    const resultSection = document.getElementById('result-section');
+    const resultText = document.getElementById('result-text');
+    const confidenceBar = document.getElementById('confidence-bar');
+    const confidenceText = document.getElementById('confidence-text');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      loader.style.display = 'block';
+      resultSection.style.display = 'none';
+
+      const fileInput = document.getElementById('video-input');
+      const formData = new FormData();
+      formData.append('video', fileInput.files[0]);
+
+      try {
+        const res = await fetch('/predict', {
+          method: 'POST',
+          body: formData
+        });
+
+        const data = await res.json();
+
+        loader.style.display = 'none';
+        resultSection.style.display = 'block';
+
+        resultText.textContent = data.result;
+        resultText.classList.add('pop-text');
+
+        confidenceBar.style.width = `${data.confidence * 100}%`;
+        confidenceText.textContent = `Confidence: ${(data.confidence * 100).toFixed(2)}%`;
+
+      } catch (err) {
+        loader.style.display = 'none';
+        alert('Error analyzing video!');
+      }
+    });
+  </script>
+
+  <style>
+    @keyframes gradientFlow {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+  </style>
+</body>
+</html>
